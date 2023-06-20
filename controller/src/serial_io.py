@@ -9,32 +9,28 @@ from std_msgs.msg import Int16MultiArray, Float64
 from time import sleep as s
 
 '''
-ERP42 mini의 input은 speed, steer, brake, gear 총 네 가지입니다.
+ERP42 mini input:
+speed, steer, brake, gear
 
-후진할 일 없으니 gear는 고려하지 않으셔도 되고, speed, steer, brake를 알고리즘을 통해 실시간으로 변경시켜주시면 됩니다.
-
-모든 차량이 그렇지만, 차량이 완벽한 균형을 이루지 않기 때문에 steer을 중앙값으로 설정해도 차량이 완벽히 직진하지 않습니다.
-
-https://wego-robotics.com/wego-erp42mini/   <<ERP42 mini 제원
-
+This is true of all vehicles, but the vehicle is not in perfect balance. So although you set the steer to the median, the vehicle will not allow to go completely straight.
 '''
 
 class SerialIO:
     def __init__(self):
         self.speed = 0 #value : 0~800 / real world speed : 0~6km/h 
-        self.steer = 1550 #value : 1300~1800. middle = 1550 / real world steer는 기억이 안 나지만 쁠마 23도 였나.. 한번 측정해보시면 좋겠습니다
-        # self.steer = 1550 #value : 1300~1800. middle = 1550 / real world steer는 기억이 안 나지만 쁠마 23도 였나.. 한번 측정해보시면 좋겠습니다
-        self.brake = 0 #1200~1500 / 그냥 1200이나 1500 골라 쓰시면 됩니다. 차가 안 무거워서 괜찮티비
-        self.gear = 0 #0 or 1 / 전후진
+        self.steer = 1550 #value : 1300~1800. middle = 1550
+        # self.steer = 1550 #value : 1300~1800. middle = 1550
+        self.brake = 0 #1200~1500 / you choose 1200 or 1500
+        self.gear = 0 #0(전진) or 1(후진)
         self.camera = 0
 
         self.serial1 = serial.Serial(port='/dev/erp42_mini', baudrate=115200)
        
         rospy.init_node("Serial", anonymous=False)
-        self.sub = rospy.Subscriber("/controller", Int16MultiArray, self.controlCallback) # 인지부에서 controller 이름의 메시지 보내면 callback 실행
+        self.sub = rospy.Subscriber("/controller", Int16MultiArray, self.controlCallback) 
         
     def serRead(self):
-        if self.serial1.readable(): # 시리얼 읽기
+        if self.serial1.readable(): # read serial
             res = self.serial1.readline()
             # print(res.decode()[:len(res) - 1])
 
@@ -105,7 +101,7 @@ if __name__ == "__main__":
     while not rospy.is_shutdown():
         try:
             sio.run()
-            print(sio.steer, sio.camera, sio.brake)
+            # print(sio.steer, sio.camera, sio.brake)
             s(0.01)
         except:
             pass
