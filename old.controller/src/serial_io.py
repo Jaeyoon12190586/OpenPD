@@ -1,11 +1,13 @@
 #! /usr/bin/env python3
 # -*- coding:utf-8 -*-
 
+
+# import cv2
 import serial
 import numpy as np
 from numpy import float32
 import rospy
-from std_msgs.msg import Int16MultiArray, Float64
+from std_msgs.msg import Int16MultiArray
 from time import sleep as s
 
 '''
@@ -21,18 +23,17 @@ https://wego-robotics.com/wego-erp42mini/   <<ERP42 mini 제원
 
 class SerialIO:
     def __init__(self):
-        self.speed = 0 #value : 0~800 / real world speed : 0~6km/h 
-        self.steer = 1550 #value : 1300~1800. middle = 1550 / real world steer는 기억이 안 나지만 쁠마 23도 였나.. 한번 측정해보시면 좋겠습니다
+        self.speed = 300 #value : 0~800 / real world speed : 0~6km/h 
+        self.steer = 1300 #value : 1300~1800. middle = 1550 / real world steer는 기억이 안 나지만 쁠마 23도 였나.. 한번 측정해보시면 좋겠습니다
         # self.steer = 1550 #value : 1300~1800. middle = 1550 / real world steer는 기억이 안 나지만 쁠마 23도 였나.. 한번 측정해보시면 좋겠습니다
         self.brake = 0 #1200~1500 / 그냥 1200이나 1500 골라 쓰시면 됩니다. 차가 안 무거워서 괜찮티비
         self.gear = 0 #0 or 1 / 전후진
-        self.camera = 0
 
         self.serial1 = serial.Serial(port='/dev/erp42_mini', baudrate=115200)
        
         rospy.init_node("Serial", anonymous=False)
         self.sub = rospy.Subscriber("/controller", Int16MultiArray, self.controlCallback) # 인지부에서 controller 이름의 메시지 보내면 callback 실행
-        
+    
     def serRead(self):
         if self.serial1.readable(): # 시리얼 읽기
             res = self.serial1.readline()
@@ -43,13 +44,18 @@ class SerialIO:
         self.serial1.write(self.writeBuffer())
         # print(self.writeBuffer())
 
-    def controlCallback(self,msg):
-        self.gear = msg.data[0]
-        self.speed = msg.data[1]
-        self.steer = msg.data[2]
-        self.brake = msg.data[3]
-        self.camera = msg.data[4]
+    #     self.gear = msg.data[0]
+     # def controlCallback(self, msg):
+   #     self.speed = msg.data[1]
+    #     self.steer = msg.data[2]
+    #     self.brake = msg.data[3]
 
+    def controlCallback(self):
+        self.gear = 0
+        self.speed = 50
+        self.steer = 1800
+        self.brake = 0
+    
     def writeBuffer(self): # 시리얼통신 프로토콜에 맞춰 패킷 생성
         packet = []
         gear = self.gear
@@ -96,16 +102,23 @@ class SerialIO:
     
     def run(self):
         self.serWrite() 
+        # self.serRead()
+
+# def draw_point_on_frame(frame):
+#     height, width, _ = frame.shape
+#     center_x = width // 2
+#     center_y = height // 2
+#     cv2.circle(frame, (center_x, center_y), 5, (0, 0, 255), -1)
+#     cv2.imshow("Camera", frame)
+
 
 if __name__ == "__main__":
     sio = SerialIO()
-    s(5.0  )
     print("hello")
 
     while not rospy.is_shutdown():
         try:
             sio.run()
-            print(sio.steer, sio.camera, sio.brake)
             s(0.01)
         except:
             pass

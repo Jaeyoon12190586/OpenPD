@@ -1,0 +1,9 @@
+<?xml version = "1.0" encoding="UTF-8"?>
+<launch>
+
+	<node pkg="controller" type="camera.py" name="camera" respawn="true"/>
+	<node pkg="controller" type="control_module.py" name="moudle" respawn="true"/>
+	<node pkg="controller" type="serial_io.py" name="io" respawn="true" output="screen"/>
+    
+</launch>
+  	
